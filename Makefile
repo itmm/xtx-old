@@ -5,9 +5,13 @@ CXXFLAGS += -Wall -std=c++17
 hx-run: index.md
 	@echo HX
 	@which hx >/dev/null && hx || true
+	@date >$@
 	@make --no-print-directory test
 
 xtx.cpp: xtx.h
+	@touch xtx.cpp
+
+xtx: xtx.cpp
 
 test: xtx
 	@echo XTX

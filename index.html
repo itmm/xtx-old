@@ -66,14 +66,19 @@
 <span class="in2"></span><span class="var">virtual</span> ~<span class="fn">Node</span>() {}<br/>
 <span class="in2"></span><span class="var">virtual</span> <span class="type">void</span> <span class="fn">write</span>(<span class="type">std</span>::<span class="type">ostream</span> &amp;<span class="var">out</span>, <span class="type">State</span> &amp;<span class="var">state</span>) <span class="type">const</span> = <span class="num">0</span>;<br/>
 <span class="in1"></span><span class="var">protected</span>:<br/>
+<span class="in2"></span><span class="type">void</span> <span class="fn">assure_newline</span>(<span class="type">std</span>::<span class="type">ostream</span> &amp;<span class="var">out</span>, <span class="type">State</span> &amp;<span class="var">state</span>) <span class="type">const</span> {<br/>
+<span class="in3"></span><span class="keyword">if</span> (<span class="var">state</span>.<span class="var">column</span> &gt; <span class="num">0</span>) {<br/>
+<span class="in4"></span><span class="var">out</span> &lt;&lt; <span class="str">'\n'</span>; <span class="var">state</span>.<span class="var">column</span> = <span class="num">0</span>; ++<span class="var">state</span>.<span class="var">line</span>;<br/>
+<span class="in3"></span>}<br/>
+<span class="in2"></span>}<br/>
 <span class="in2"></span><span class="type">void</span> <span class="fn">add_space</span>(<span class="type">std</span>::<span class="type">ostream</span> &amp;<span class="var">out</span>, <span class="type">State</span> &amp;<span class="var">state</span>, <span class="type">int</span> <span class="var">size</span>) <span class="type">const</span> {<br/>
 <span class="in3"></span><span class="keyword">if</span> (<span class="var">state</span>.<span class="var">first</span>) {<br/>
 <span class="in4"></span><span class="var">state</span>.<span class="var">first</span> = <span class="num">false</span>;<br/>
 <span class="in3"></span>} <span class="keyword">else</span> {<br/>
-<span class="in4"></span><span class="keyword">if</span> (<span class="var">state</span>.<span class="var">column</span> &gt; <span class="num">0</span> &amp;&amp; <span class="var">state</span>.<span class="var">soft_break_at</span> &gt; <span class="num">0</span> &amp;&amp; <span class="var">state</span>.<span class="var">column</span> + <span class="num">1</span> + <span class="var">size</span> &lt;= <span class="var">state</span>.<span class="var">soft_break_at</span>) {<br/>
+<span class="in4"></span><span class="keyword">if</span> (<span class="var">state</span>.<span class="var">column</span> &gt; <span class="num">0</span> &amp;&amp; (<span class="var">state</span>.<span class="var">soft_break_at</span> &lt; <span class="num">0</span> || <span class="var">state</span>.<span class="var">column</span> + <span class="num">1</span> + <span class="var">size</span> &lt;= <span class="var">state</span>.<span class="var">soft_break_at</span>)) {<br/>
 <span class="in5"></span><span class="var">out</span> &lt;&lt; <span class="str">' '</span>; ++<span class="var">state</span>.<span class="var">column</span>;<br/>
 <span class="in4"></span>} <span class="keyword">else</span> {<br/>
-<span class="in5"></span><span class="var">out</span> &lt;&lt; <span class="str">'\n'</span>; <span class="var">state</span>.<span class="var">column</span> = <span class="num">0</span>; ++<span class="var">state</span>.<span class="var">line</span>;<br/>
+<span class="in5"></span><span class="fn">assure_newline</span>(<span class="var">out</span>, <span class="var">state</span>);<br/>
 <span class="in4"></span>}<br/>
 <span class="in3"></span>}<br/>
 <span class="in2"></span>}<br/>
@@ -105,37 +110,31 @@
 <div class="page"><div class="slide"><div class="slide-nr">8</div>
 <code>
 <span class="macro">@add(<span class="name">globals</span>)</span><br/>
-<span class="in1"></span><span class="keyword">class</span> <span class="type">Level</span>: <span class="keyword">public</span> <span class="type">Node</span> {<br/>
-<span class="in2"></span><span class="type">const</span> <span class="type">std</span>::<span class="type">string</span> <span class="var">name_</span>;<br/>
+<span class="in1"></span><span class="keyword">class</span> <span class="type">Group</span>: <span class="keyword">public</span> <span class="type">Node</span> {<br/>
+<span class="in2"></span><span class="type">bool</span> <span class="var">one_line_</span>;<br/>
 <span class="in2"></span><span class="type">Nodes</span> <span class="var">childs_</span>;<br/>
 <span class="in1"></span><span class="keyword">public</span>:<br/>
-<span class="in2"></span><span class="fn">Level</span>(<span class="type">const</span> <span class="type">std</span>::<span class="type">string</span> &amp;<span class="var">name</span> = <span class="type">std</span>::<span class="type">string</span> {}): <span class="var">name_</span> { <span class="var">name</span> } {}<br/>
-<span class="in2"></span><span class="type">const</span> <span class="type">std</span>::<span class="type">string</span> &amp;<span class="fn">name</span>() <span class="type">const</span> { <span class="keyword">return</span> <span class="var">name_</span>; }<br/>
+<span class="in2"></span><span class="fn">Group</span>(<span class="type">bool</span> <span class="var">one_line</span> = <span class="num">false</span>): <span class="var">one_line_</span> { <span class="var">one_line</span> } {}<br/>
+<span class="in2"></span><span class="type">bool</span> <span class="fn">one_line</span>() <span class="type">const</span> { <span class="keyword">return</span> <span class="var">one_line_</span>; }<br/>
+<span class="in2"></span><span class="type">void</span> <span class="fn">one_line</span>(<span class="type">bool</span> <span class="var">ol</span>) { <span class="var">one_line_</span> = <span class="var">ol</span>; }<br/>
 <span class="in2"></span><span class="type">void</span> <span class="fn">write</span>(<span class="type">std</span>::<span class="type">ostream</span> &amp;<span class="var">out</span>, <span class="type">State</span> &amp;<span class="var">state</span>) <span class="type">const</span>;<br/>
-<span class="in2"></span><span class="type">Level</span> &amp;<span class="var">operator</span>+=(<span class="type">Node_Ptr</span> &amp;&amp;<span class="var">node</span>) {<br/>
+<span class="in2"></span><span class="type">Group</span> &amp;<span class="var">operator</span>+=(<span class="type">Node_Ptr</span> &amp;&amp;<span class="var">node</span>) {<br/>
 <span class="in3"></span><span class="var">childs_</span>.<span class="fn">push_back</span>(<span class="type">std</span>::<span class="fn">move</span>(<span class="var">node</span>));<br/>
 <span class="in3"></span><span class="keyword">return</span> *<span class="var">this</span>;<br/>
 <span class="in2"></span>}<br/>
 <span class="in1"></span>};<br/>
 <br/>
+<span class="in1"></span><span class="keyword">using</span> <span class="type">Group_Ptr</span> = <span class="type">std</span>::<span class="var">unique_ptr</span>&lt;<span class="type">Group</span>&gt;;<br/>
+<br/>
 <span class="in1"></span><span class="keyword">#if</span> <span class="var">xtx_IMPL</span><br/>
-<span class="in2"></span><span class="type">void</span> <span class="type">Level</span>::<span class="fn">write</span>(<span class="type">std</span>::<span class="type">ostream</span> &amp;<span class="var">out</span>, <span class="type">State</span> &amp;<span class="var">state</span>) <span class="type">const</span> {<br/>
-<span class="in3"></span>++<span class="var">state</span>.<span class="var">level</span>;<br/>
-<span class="in3"></span><span class="keyword">if</span> (! <span class="var">name_</span>.<span class="fn">empty</span>()) {<br/>
-<span class="in4"></span><span class="keyword">if</span> (<span class="var">state</span>.<span class="var">column</span> &gt; <span class="num">0</span>) {<br/>
-<span class="in5"></span><span class="var">out</span> &lt;&lt; <span class="str">'\n'</span>; ++<span class="var">state</span>.<span class="var">line</span>; <span class="var">state</span>.<span class="var">column</span> = <span class="num">0</span>;<br/>
-<span class="in4"></span>}<br/>
-<span class="in4"></span><span class="keyword">for</span> (<span class="type">int</span> <span class="var">i</span> { <span class="var">state</span>.<span class="var">level</span> }; <span class="var">i</span>; --<span class="var">i</span>) {<br/>
-<span class="in5"></span><span class="var">out</span> &lt;&lt; <span class="str">'#'</span>;<br/>
-<span class="in4"></span>}<br/>
-<span class="in4"></span><span class="var">out</span> &lt;&lt; <span class="str">' '</span> &lt;&lt; <span class="var">name_</span> &lt;&lt; <span class="str">"\n\n"</span>;<br/>
-<span class="in4"></span><span class="var">state</span>.<span class="var">column</span> = <span class="num">0</span>; <span class="var">state</span>.<span class="var">line</span> += <span class="num">2</span>;<br/>
-<span class="in3"></span>}<br/>
+<span class="in2"></span><span class="type">void</span> <span class="type">Group</span>::<span class="fn">write</span>(<span class="type">std</span>::<span class="type">ostream</span> &amp;<span class="var">out</span>, <span class="type">State</span> &amp;<span class="var">state</span>) <span class="type">const</span> {<br/>
+<span class="in3"></span><span class="type">int</span> <span class="var">old_soft_break_at</span> { <span class="var">state</span>.<span class="var">soft_break_at</span> };<br/>
+<span class="in3"></span><span class="keyword">if</span> (<span class="var">one_line_</span>) { <span class="var">state</span>.<span class="var">soft_break_at</span> = -<span class="num">1</span>; };<br/>
+<span class="in3"></span><span class="var">state</span>.<span class="var">first</span> = <span class="num">true</span>;<br/>
 <span class="in3"></span><span class="keyword">for</span> (<span class="type">const</span> <span class="type">auto</span> &amp;<span class="var">c</span>: <span class="var">childs_</span>) {<br/>
 <span class="in4"></span><span class="var">c</span>-&gt;<span class="fn">write</span>(<span class="var">out</span>, <span class="var">state</span>);<br/>
 <span class="in3"></span>}<br/>
-<span class="in3"></span><span class="var">out</span> &lt;&lt; <span class="str">'\n'</span>;<br/>
-<span class="in3"></span><span class="var">state</span>.<span class="var">column</span> = <span class="num">0</span>; ++<span class="var">state</span>.<span class="var">line</span>;<br/>
+<span class="in3"></span><span class="var">state</span>.<span class="var">soft_break_at</span> = <span class="var">old_soft_break_at</span>;<br/>
 <span class="in2"></span>}<br/>
 <span class="in1"></span><span class="keyword">#endif</span><br/>
 <span class="macro">@end(<span class="name">globals</span>)</span><br/>
@@ -143,13 +142,63 @@
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">9</div>
 <code>
+<span class="macro">@add(<span class="name">globals</span>)</span><br/>
+<span class="in1"></span><span class="keyword">class</span> <span class="type">Level</span>: <span class="keyword">public</span> <span class="type">Group</span> {<br/>
+<span class="in2"></span><span class="type">Group_Ptr</span> <span class="var">name_</span>;<br/>
+<span class="in2"></span><span class="type">Nodes</span> <span class="var">childs_</span>;<br/>
+<span class="in1"></span><span class="keyword">public</span>:<br/>
+<span class="in2"></span><span class="fn">Level</span>() {}<br/>
+<span class="in2"></span><span class="fn">Level</span>(<span class="type">Group_Ptr</span> &amp;&amp;<span class="var">name</span>): <span class="var">name_</span> { <span class="type">std</span>::<span class="fn">move</span>(<span class="var">name</span>) } {<br/>
+<span class="in3"></span><span class="var">name_</span>-&gt;<span class="fn">one_line</span>(<span class="num">true</span>);<br/>
+<span class="in2"></span>}<br/>
+<span class="in2"></span><span class="type">Group_Ptr</span> &amp;<span class="fn">name</span>() { <span class="keyword">return</span> <span class="var">name_</span>; }<br/>
+<span class="in2"></span><span class="type">void</span> <span class="fn">write</span>(<span class="type">std</span>::<span class="type">ostream</span> &amp;<span class="var">out</span>, <span class="type">State</span> &amp;<span class="var">state</span>) <span class="type">const</span>;<br/>
+<span class="in1"></span>};<br/>
+<br/>
+<span class="in1"></span><span class="keyword">#if</span> <span class="var">xtx_IMPL</span><br/>
+<span class="in2"></span><span class="keyword">class</span> <span class="type">State_Inc</span> {<br/>
+<span class="in3"></span><span class="type">State</span> &amp;<span class="var">state_</span>;<br/>
+<span class="in2"></span><span class="keyword">public</span>:<br/>
+<span class="in3"></span><span class="fn">State_Inc</span>(<span class="type">State</span> &amp;<span class="var">state</span>): <span class="var">state_</span> { <span class="var">state</span> } {<br/>
+<span class="in4"></span>++<span class="var">state_</span>.<span class="var">level</span>;<br/>
+<span class="in3"></span>}<br/>
+<span class="in3"></span>~<span class="fn">State_Inc</span>() { --<span class="var">state_</span>.<span class="var">level</span>; }<br/>
+<span class="in2"></span>};<br/>
+<br/>
+<span class="in2"></span><span class="type">void</span> <span class="type">Level</span>::<span class="fn">write</span>(<span class="type">std</span>::<span class="type">ostream</span> &amp;<span class="var">out</span>, <span class="type">State</span> &amp;<span class="var">state</span>) <span class="type">const</span> {<br/>
+<span class="in3"></span><span class="type">State_Inc</span> <span class="var">si</span> { <span class="var">state</span> };<br/>
+<span class="in3"></span><span class="keyword">if</span> (<span class="var">name_</span>) {<br/>
+<span class="in4"></span><span class="fn">assure_newline</span>(<span class="var">out</span>, <span class="var">state</span>);<br/>
+<span class="in4"></span><span class="keyword">for</span> (<span class="type">int</span> <span class="var">i</span> { <span class="var">state</span>.<span class="var">level</span> }; <span class="var">i</span>; --<span class="var">i</span>) {<br/>
+<span class="in5"></span><span class="var">out</span> &lt;&lt; <span class="str">'#'</span>; ++<span class="var">state</span>.<span class="var">column</span>;<br/>
+<span class="in4"></span>}<br/>
+<span class="in4"></span><span class="var">out</span> &lt;&lt; <span class="str">' '</span>; ++<span class="var">state</span>.<span class="var">column</span>;<br/>
+<span class="in4"></span><span class="var">out</span> &lt;&lt; *<span class="var">name_</span>;<br/>
+<span class="in4"></span><span class="fn">assure_newline</span>(<span class="var">out</span>, <span class="var">state</span>);<br/>
+<span class="in4"></span><span class="var">out</span> &lt;&lt; <span class="str">'\n'</span>; ++<span class="var">state</span>.<span class="var">line</span>;<br/>
+<span class="in3"></span>}<br/>
+<span class="in3"></span><span class="type">Group</span>::<span class="fn">write</span>(<span class="var">out</span>, <span class="var">state</span>);<br/>
+<span class="in3"></span><span class="var">out</span> &lt;&lt; <span class="str">'\n'</span>;<br/>
+<span class="in3"></span><span class="var">state</span>.<span class="var">column</span> = <span class="num">0</span>; ++<span class="var">state</span>.<span class="var">line</span>;<br/>
+<span class="in2"></span>}<br/>
+<span class="in1"></span><span class="keyword">#endif</span><br/>
+<span class="macro">@end(<span class="name">globals</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">10</div>
+<code>
 <span class="macro">@Add(<span class="name">file: xtx.h</span>)</span><br/>
 <span class="in1"></span><span class="keyword">#if</span> <span class="var">xtx_IMPL</span><br/>
 <span class="in2"></span><span class="type">int</span> <span class="fn">main</span>() {<br/>
-<span class="in3"></span><span class="var">xtx</span>::<span class="type">Level</span> <span class="var">root</span> { <span class="str">"root"</span> };<br/>
-<span class="in3"></span><span class="var">xtx</span>::<span class="type">Node_Ptr</span> <span class="var">mid</span> { <span class="keyword">new</span> <span class="var">xtx</span>::<span class="type">Level</span> {} };<br/>
-<span class="in3"></span><span class="var">xtx</span>::<span class="type">Node_Ptr</span> <span class="var">sub</span> { <span class="keyword">new</span> <span class="var">xtx</span>::<span class="type">Level</span> { <span class="str">"sub"</span> } };<br/>
-<span class="in3"></span>((<span class="var">xtx</span>::<span class="type">Level</span> &amp;) *<span class="var">mid</span>) += <span class="type">std</span>::<span class="fn">move</span>(<span class="var">sub</span>);<br/>
+<span class="in3"></span><span class="type">auto</span> <span class="var">root_name</span> = <span class="type">std</span>::<span class="var">make_unique</span>&lt;<span class="var">xtx</span>::<span class="type">Group</span>&gt;();<br/>
+<span class="in3"></span>*<span class="var">root_name</span> += <span class="type">std</span>::<span class="fn">move</span>(<span class="type">std</span>::<span class="var">make_unique</span>&lt;<span class="var">xtx</span>::<span class="type">Plain</span>&gt;(<span class="str">"root"</span>));<br/>
+<span class="in3"></span><span class="var">xtx</span>::<span class="type">Level</span> <span class="var">root</span> { <span class="type">std</span>::<span class="fn">move</span>(<span class="var">root_name</span>) };<br/>
+<span class="in3"></span><span class="type">auto</span> <span class="var">mid</span>  = <span class="type">std</span>::<span class="var">make_unique</span>&lt;<span class="var">xtx</span>::<span class="type">Level</span>&gt;();<br/>
+<span class="in3"></span><span class="type">auto</span> <span class="var">sub_name</span>  = <span class="type">std</span>::<span class="var">make_unique</span>&lt;<span class="var">xtx</span>::<span class="type">Group</span>&gt;();<br/>
+<span class="in3"></span>*<span class="var">sub_name</span> += <span class="type">std</span>::<span class="fn">move</span>(<span class="type">std</span>::<span class="var">make_unique</span>&lt;<span class="var">xtx</span>::<span class="type">Plain</span>&gt;(<span class="str">"sub"</span>));<br/>
+<span class="in3"></span>*<span class="var">sub_name</span> += <span class="type">std</span>::<span class="fn">move</span>(<span class="type">std</span>::<span class="var">make_unique</span>&lt;<span class="var">xtx</span>::<span class="type">Plain</span>&gt;(<span class="str">"test"</span>));<br/>
+<span class="in3"></span><span class="type">auto</span> <span class="var">sub</span>  = <span class="type">std</span>::<span class="var">make_unique</span>&lt;<span class="var">xtx</span>::<span class="type">Level</span>&gt;(<span class="type">std</span>::<span class="fn">move</span>(<span class="var">sub_name</span>));<br/>
+<span class="in3"></span>*<span class="var">mid</span> += <span class="type">std</span>::<span class="fn">move</span>(<span class="var">sub</span>);<br/>
 <span class="in3"></span><span class="var">root</span> += <span class="type">std</span>::<span class="fn">move</span>(<span class="var">mid</span>);<br/>
 <span class="in3"></span><span class="type">std</span>::<span class="var">cout</span> &lt;&lt; <span class="str">"// BEGIN\n"</span>;<br/>
 <span class="in3"></span><span class="type">std</span>::<span class="var">cout</span> &lt;&lt; <span class="var">root</span>;<br/>
